@@ -10,6 +10,7 @@ struct ContentView: View {
                 HomeView(viewModel: viewModel)
             case .playing:
                 GameView(viewModel: viewModel)
+          
             case .result:
                 ResultView(viewModel: viewModel)
             }
