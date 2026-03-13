@@ -4,163 +4,108 @@ struct ResultView: View {
     @ObservedObject var viewModel: GameViewModel
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                scoreHeader
-                timeRow
-                Divider()
-                problemList
-                actionButtons
-            }
-            .padding()
-        }
-    }
+        ZStack {
+            (viewModel.survived ? Color.green : Color.red).opacity(0.08).ignoresSafeArea()
 
-    // MARK: - Score Header
+            VStack(spacing: 0) {
+                Spacer()
 
-    private var scoreHeader: some View {
-        VStack(spacing: 12) {
-            Text(scoreEmoji)
-                .font(.system(size: 80))
+                // 結果
+                Text(viewModel.survived ? "🌸" : "😢")
+                    .font(.system(size: 100))
+                    .padding(.bottom, 12)
 
-            Text("\(viewModel.correctCount) / \(viewModel.problems.count) 正解")
-                .font(.system(size: 36, weight: .bold, design: .rounded))
+                Text(viewModel.survived ? "春まで生き延びた！" : "おなかがへってしまった…")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+                    .padding(.bottom, 8)
 
-            Text(scoreMessage)
-                .font(.title3)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-        }
-        .padding(.top, 8)
-    }
-
-    private var scoreEmoji: String {
-        let rate = scoreRate
-        switch rate {
-        case 1.0:         return "🏆"
-        case 0.8..<1.0:   return "🎉"
-        case 0.6..<0.8:   return "😊"
-        case 0.4..<0.6:   return "🤔"
-        default:          return "💪"
-        }
-    }
-
-    private var scoreMessage: String {
-        let rate = scoreRate
-        switch rate {
-        case 1.0:         return "全問正解！コツ名人！"
-        case 0.8..<1.0:   return "すごい！よく工夫できたね"
-        case 0.6..<0.8:   return "よくできました！"
-        case 0.4..<0.6:   return "もう少し！コツを覚えよう"
-        default:          return "練習あるのみ！諦めないで！"
-        }
-    }
-
-    private var scoreRate: Double {
-        guard !viewModel.problems.isEmpty else { return 0 }
-        return Double(viewModel.correctCount) / Double(viewModel.problems.count)
-    }
-
-    // MARK: - Time
-
-    private var timeRow: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "stopwatch")
-                .foregroundColor(.orange)
-            Text(String(format: "%.1f秒", viewModel.elapsedSeconds))
-                .fontWeight(.semibold)
-            Text("で解いたよ！")
-                .foregroundColor(.secondary)
-        }
-        .font(.title3)
-    }
-
-    // MARK: - Problem List
-
-    private var problemList: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("問題の振り返り")
-                .font(.headline)
-                .foregroundColor(.secondary)
-
-            ForEach(Array(viewModel.results.enumerated()), id: \.offset) { index, result in
-                resultRow(result: result, number: index + 1)
-            }
-        }
-    }
-
-    private func resultRow(result: GameResult, number: Int) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Text("\(number)")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .frame(width: 22, alignment: .center)
-                .padding(.top, 2)
-
-            Image(systemName: result.isCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
-                .foregroundColor(result.isCorrect ? .green : .red)
-                .font(.title3)
-                .padding(.top, 1)
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text(result.problem.displayString + " ＝ \(result.problem.answer)")
+                Text(viewModel.survived
+                     ? "コツを使ってうまく解けたね！"
+                     : "コツを覚えてもう一度チャレンジ！")
                     .font(.subheadline)
-                    .fontWeight(.semibold)
+                    .foregroundColor(.secondary)
+                    .padding(.bottom, 40)
 
-                if !result.isCorrect {
-                    Text("あなたの答え：\(result.userAnswer)")
-                        .font(.caption)
-                        .foregroundColor(.red)
-                }
+                // スコアカード
+                scoreCard
+                    .padding(.horizontal, 32)
 
-                HStack(spacing: 4) {
-                    Image(systemName: "lightbulb.fill")
-                        .font(.caption2)
-                    Text(result.problem.trick.shortHint)
-                        .font(.caption)
+                Spacer()
+
+                // ボタン
+                VStack(spacing: 12) {
+                    Button {
+                        viewModel.startStory()
+                    } label: {
+                        Text("もう一度チャレンジ！")
+                            .font(.title3).fontWeight(.bold)
+                            .frame(maxWidth: .infinity).padding(.vertical, 18)
+                            .background(Color.brown)
+                            .foregroundColor(.white).cornerRadius(16)
+                    }
+
+                    Button {
+                        viewModel.goToTitle()
+                    } label: {
+                        Text("タイトルに戻る")
+                            .font(.title3).fontWeight(.bold)
+                            .frame(maxWidth: .infinity).padding(.vertical, 18)
+                            .background(Color(.secondarySystemBackground))
+                            .foregroundColor(.primary).cornerRadius(16)
+                    }
                 }
-                .foregroundColor(.orange)
+                .padding(.horizontal, 32)
+                .padding(.bottom, 48)
             }
-
-            Spacer()
         }
-        .padding(12)
-        .background(
-            result.isCorrect
-                ? Color.green.opacity(0.08)
-                : Color.red.opacity(0.08)
-        )
-        .cornerRadius(12)
     }
 
-    // MARK: - Action Buttons
-
-    private var actionButtons: some View {
-        VStack(spacing: 12) {
-            Button {
-                viewModel.replayGame()
-            } label: {
-                Label("もう一度チャレンジ！", systemImage: "arrow.clockwise")
-                    .font(.title3).fontWeight(.bold)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 18)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(14)
+    private var scoreCard: some View {
+        VStack(spacing: 20) {
+            HStack(spacing: 0) {
+                scoreItem(emoji: "🍘", label: "せんべい", value: "\(viewModel.senbeiCount)枚")
+                Divider().frame(height: 48)
+                scoreItem(emoji: "🌨️", label: "必要な脂肪", value: "\(viewModel.requiredMetabo)")
+                Divider().frame(height: 48)
+                scoreItem(
+                    emoji: viewModel.survived ? "✅" : "❌",
+                    label: "判定",
+                    value: viewModel.survived ? "生存" : "失敗"
+                )
             }
 
-            Button {
-                viewModel.goHome()
-            } label: {
-                Label("ホームに戻る", systemImage: "house")
-                    .font(.title3).fontWeight(.bold)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 18)
-                    .background(Color(.secondarySystemBackground))
-                    .foregroundColor(.primary)
-                    .cornerRadius(14)
+            // コツ一覧ヒント
+            VStack(alignment: .leading, spacing: 8) {
+                Text("今回出たコツ").font(.caption).fontWeight(.semibold).foregroundColor(.secondary)
+                ForEach(TrickType.allCases, id: \.self) { trick in
+                    HStack(alignment: .top, spacing: 8) {
+                        Image(systemName: "lightbulb.fill").foregroundColor(.orange).font(.caption)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(trick.shortName).font(.caption).fontWeight(.bold)
+                            Text(trick.hint).font(.caption2).foregroundColor(.secondary)
+                        }
+                    }
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(14)
+            .background(Color.orange.opacity(0.08))
+            .cornerRadius(12)
         }
-        .padding(.bottom, 16)
+        .padding(20)
+        .background(Color(.systemBackground))
+        .cornerRadius(20)
+        .shadow(color: .black.opacity(0.06), radius: 8, y: 4)
+    }
+
+    private func scoreItem(emoji: String, label: String, value: String) -> some View {
+        VStack(spacing: 4) {
+            Text(emoji).font(.title2)
+            Text(value).font(.headline).fontWeight(.bold)
+            Text(label).font(.caption).foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
     }
 }

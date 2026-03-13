@@ -1,146 +1,174 @@
 import Foundation
 import Combine
 
-// MARK: - GameMode
+// MARK: - AppState
 
-enum GameMode: String, CaseIterable {
-    case addition       = "足し算"
-    case multiplication = "掛け算"
-    case mixed          = "ミックス"
-
-    var icon: String {
-        switch self {
-        case .addition:       return "plus.circle.fill"
-        case .multiplication: return "multiply.circle.fill"
-        case .mixed:          return "shuffle.circle.fill"
-        }
-    }
-
-    var operation: Operation? {
-        switch self {
-        case .addition:       return .addition
-        case .multiplication: return .multiplication
-        case .mixed:          return nil
-        }
-    }
+enum AppState: Equatable {
+    case title
+    case story
+    case playing
+    case gameEnd
+    case homeReturn
+    case mogmog
+    case winter
+    case result
 }
 
-// MARK: - GameState
+// MARK: - AnswerFeedback
 
-enum GameState {
-    case home
-    case playing
-    case result
+enum AnswerFeedback {
+    case none
+    case correct(trickName: String)
+    case wrong(correctAnswer: Int)
 }
 
 // MARK: - GameViewModel
 
 final class GameViewModel: ObservableObject {
 
-    // MARK: - Published State
+    // MARK: - App State
 
-    @Published var gameState: GameState = .home
-    @Published var problems: [Problem] = []
-    @Published var currentIndex: Int = 0
+    @Published var appState: AppState = .title
+
+    // MARK: - Story
+
+    @Published var storyPage: Int = 0
+
+    let storyPanels: [(character: String, emoji: String, text: String)] = [
+        ("マーモットの子", "🐹", "おかあちゃん、おなかすいたよ〜"),
+        ("母マーモット",   "🐻", "この手を人間の手に変えてあげよう"),
+        ("母マーモット",   "🐻", "人間の街に行って、せんべいを買っておいで！"),
+        ("せんべい屋",     "👴", "ちょっと待て！それ、マーモットの手じゃないか？"),
+        ("せんべい屋",     "👴", "人間の子なら暗算クイズに答えられるよな？"),
+        ("せんべい屋",     "👴", "60秒で、できるだけたくさん答えてみろ！"),
+    ]
+
+    // MARK: - Gameplay
+
+    @Published var timeRemaining: Double = 60.0
+    @Published var senbeiCount: Int = 0
+    @Published var currentProblem: Problem?
     @Published var userInput: String = ""
-    @Published var results: [GameResult] = []
-    @Published var isAnswered: Bool = false
-    @Published var elapsedSeconds: Double = 0
+    @Published var feedback: AnswerFeedback = .none
+    @Published var isInputDisabled: Bool = false
 
-    // MARK: - Session Settings (preserved for replay)
+    let totalTime: Double = 60.0
+    let requiredMetabo: Int = 8
 
-    private(set) var lastMode: GameMode = .mixed
-    private(set) var lastCount: Int = 10
-
-    // MARK: - Private
-
-    private var startTime: Date = Date()
+    private var timerCancellable: AnyCancellable?
 
     // MARK: - Computed
 
-    var currentProblem: Problem? {
-        problems.indices.contains(currentIndex) ? problems[currentIndex] : nil
+    var survived: Bool { senbeiCount >= requiredMetabo }
+
+    var timeRatio: Double { timeRemaining / totalTime }
+
+    // MARK: - Flow: Title → Story
+
+    func startStory() {
+        storyPage = 0
+        appState = .story
     }
 
-    var progress: Double {
-        problems.isEmpty ? 0 : Double(currentIndex) / Double(problems.count)
-    }
-
-    var correctCount: Int {
-        results.filter(\.isCorrect).count
-    }
-
-    var lastResult: GameResult? {
-        results.last
-    }
-
-    var isLastProblem: Bool {
-        currentIndex + 1 >= problems.count
-    }
-
-    // MARK: - Game Flow
-
-    func startGame(mode: GameMode, count: Int) {
-        lastMode = mode
-        lastCount = count
-        problems = ProblemGenerator.generate(operation: mode.operation, count: count)
-        currentIndex = 0
-        results = []
-        userInput = ""
-        isAnswered = false
-        startTime = Date()
-        gameState = .playing
-    }
-
-    func replayGame() {
-        startGame(mode: lastMode, count: lastCount)
-    }
-
-    func submitAnswer() {
-        guard let problem = currentProblem,
-              let answer = Int(userInput) else { return }
-
-        let result = GameResult(
-            problem: problem,
-            userAnswer: answer,
-            isCorrect: answer == problem.answer
-        )
-        results.append(result)
-        isAnswered = true
-    }
-
-    func advance() {
-        if isLastProblem {
-            elapsedSeconds = Date().timeIntervalSince(startTime)
-            gameState = .result
+    func advanceStory() {
+        if storyPage < storyPanels.count - 1 {
+            storyPage += 1
         } else {
-            currentIndex += 1
-            userInput = ""
-            isAnswered = false
+            beginPlaying()
         }
     }
 
-    func goHome() {
-        gameState = .home
+    // MARK: - Flow: Story → Playing
+
+    private func beginPlaying() {
+        senbeiCount = 0
+        timeRemaining = totalTime
         userInput = ""
-        isAnswered = false
+        feedback = .none
+        isInputDisabled = false
+        loadNextProblem()
+        startTimer()
+        appState = .playing
+    }
+
+    private func loadNextProblem() {
+        currentProblem = ProblemGenerator.generateOne()
+    }
+
+    private func startTimer() {
+        timerCancellable?.cancel()
+        timerCancellable = Timer.publish(every: 0.1, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                guard let self else { return }
+                if self.timeRemaining > 0.1 {
+                    self.timeRemaining = max(0, self.timeRemaining - 0.1)
+                } else {
+                    self.timeRemaining = 0
+                    self.stopTimer()
+                    self.isInputDisabled = true
+                    self.appState = .gameEnd
+                }
+            }
+    }
+
+    private func stopTimer() {
+        timerCancellable?.cancel()
+        timerCancellable = nil
+    }
+
+    // MARK: - Answer Handling
+
+    func submitAnswer() {
+        guard !isInputDisabled,
+              let problem = currentProblem,
+              let answer = Int(userInput) else { return }
+
+        isInputDisabled = true
+        let correct = answer == problem.answer
+
+        if correct {
+            senbeiCount += 1
+            feedback = .correct(trickName: problem.trick.shortName)
+        } else {
+            feedback = .wrong(correctAnswer: problem.answer)
+        }
+        userInput = ""
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
+            guard let self, self.appState == .playing else { return }
+            self.feedback = .none
+            self.isInputDisabled = false
+            self.loadNextProblem()
+        }
+    }
+
+    // MARK: - Post-game transitions
+
+    func goToHomeReturn() { appState = .homeReturn }
+    func goToMogmog()     { appState = .mogmog }
+    func goToWinter()     { appState = .winter }
+    func goToResult()     { appState = .result }
+    func goToTitle()      {
+        stopTimer()
+        appState = .title
     }
 
     // MARK: - Number Input
 
-    func appendDigit(_ digit: String) {
-        guard userInput.count < 5 else { return }
-        // 先頭の0を除去
-        if userInput == "0" { userInput = digit; return }
-        userInput += digit
+    func appendDigit(_ d: String) {
+        guard !isInputDisabled, userInput.count < 4 else { return }
+        if userInput == "0" { userInput = d; return }
+        userInput += d
     }
 
     func deleteDigit() {
-        guard !userInput.isEmpty else { return }
+        guard !isInputDisabled, !userInput.isEmpty else { return }
         userInput.removeLast()
     }
 
     func clearInput() {
+        guard !isInputDisabled else { return }
         userInput = ""
     }
 }

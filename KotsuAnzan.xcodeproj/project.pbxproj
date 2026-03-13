@@ -16,6 +16,11 @@
 		CC00000000000000000000A7 /* GameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000000A7 /* GameView.swift */; };
 		CC00000000000000000000A8 /* ResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000000A8 /* ResultView.swift */; };
 		CC00000000000000000000A9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000000A9 /* Assets.xcassets */; };
+		CC00000000000000000000B1 /* StoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000000B1 /* StoryView.swift */; };
+		CC00000000000000000000B2 /* GameEndView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000000B2 /* GameEndView.swift */; };
+		CC00000000000000000000B3 /* HomeReturnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000000B3 /* HomeReturnView.swift */; };
+		CC00000000000000000000B4 /* MogmogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000000B4 /* MogmogView.swift */; };
+		CC00000000000000000000B5 /* WinterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000000B5 /* WinterView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,6 +34,11 @@
 		BB00000000000000000000A8 /* ResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultView.swift; sourceTree = "<group>"; };
 		BB00000000000000000000A9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BB00000000000000000000AA /* KotsuAnzan.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KotsuAnzan.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BB00000000000000000000B1 /* StoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryView.swift; sourceTree = "<group>"; };
+		BB00000000000000000000B2 /* GameEndView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEndView.swift; sourceTree = "<group>"; };
+		BB00000000000000000000B3 /* HomeReturnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeReturnView.swift; sourceTree = "<group>"; };
+		BB00000000000000000000B4 /* MogmogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MogmogView.swift; sourceTree = "<group>"; };
+		BB00000000000000000000B5 /* WinterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WinterView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,7 +102,12 @@
 			isa = PBXGroup;
 			children = (
 				BB00000000000000000000A6 /* HomeView.swift */,
+				BB00000000000000000000B1 /* StoryView.swift */,
 				BB00000000000000000000A7 /* GameView.swift */,
+				BB00000000000000000000B2 /* GameEndView.swift */,
+				BB00000000000000000000B3 /* HomeReturnView.swift */,
+				BB00000000000000000000B4 /* MogmogView.swift */,
+				BB00000000000000000000B5 /* WinterView.swift */,
 				BB00000000000000000000A8 /* ResultView.swift */,
 			);
 			path = Views;
@@ -181,7 +196,12 @@
 				CC00000000000000000000A4 /* ProblemGenerator.swift in Sources */,
 				CC00000000000000000000A5 /* GameViewModel.swift in Sources */,
 				CC00000000000000000000A6 /* HomeView.swift in Sources */,
+				CC00000000000000000000B1 /* StoryView.swift in Sources */,
 				CC00000000000000000000A7 /* GameView.swift in Sources */,
+				CC00000000000000000000B2 /* GameEndView.swift in Sources */,
+				CC00000000000000000000B3 /* HomeReturnView.swift in Sources */,
+				CC00000000000000000000B4 /* MogmogView.swift in Sources */,
+				CC00000000000000000000B5 /* WinterView.swift in Sources */,
 				CC00000000000000000000A8 /* ResultView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
