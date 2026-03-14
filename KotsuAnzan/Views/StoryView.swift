@@ -7,6 +7,8 @@ struct StoryView: View {
         Color.orange.opacity(0.15),
         Color.brown.opacity(0.12),
         Color.brown.opacity(0.12),
+        Color.brown.opacity(0.12),
+        Color.brown.opacity(0.12),
         Color.blue.opacity(0.10),
         Color.blue.opacity(0.10),
         Color.blue.opacity(0.10),
