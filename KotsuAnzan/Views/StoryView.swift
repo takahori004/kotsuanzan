@@ -9,6 +9,9 @@ struct StoryView: View {
         Color.brown.opacity(0.12),
         Color.blue.opacity(0.10),
         Color.blue.opacity(0.10),
+        Color.blue.opacity(0.10),
+        Color.blue.opacity(0.10),
+        Color.blue.opacity(0.10),
         Color.yellow.opacity(0.20),
     ]
 
