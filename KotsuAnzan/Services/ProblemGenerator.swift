@@ -20,7 +20,7 @@ enum ProblemGenerator {
         }
     }
 
-    // MARK: - 合体して100: 43+57=100
+    // MARK: - 一の位で10: 一の位が10になる組み合わせ (例: 43+57, 28+32)
 
     private static func combineTo100() -> Problem {
         let a = Int.random(in: 11...49)
